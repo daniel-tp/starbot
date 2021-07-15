@@ -53,6 +53,7 @@ impl StarRealmsShared {
         info!("Caching SR client");
         initial.check_turns().await;
         initial.check_challenges().await;
+        initial.check_finished().await;
         info!("Finished Caching SR client");
 
         Ok(initial)
