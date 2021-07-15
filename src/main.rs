@@ -12,7 +12,7 @@ use serenity::{
 };
 
 use log::{self, info};
-use star_realms_rs::{Challenge, StarRealms};
+use star_realms_rs::{Challenge, Game, StarRealms};
 
 use anyhow::Result;
 use tokio::time::Instant;
@@ -21,7 +21,7 @@ struct StarRealmsSharedContainer;
 
 struct StarRealmsShared {
     sr: StarRealms,
-    game_turns: HashMap<i64, String>,
+    game_turns: HashMap<i64, Game>,
     challenges: Vec<i64>,
     last_update: Instant,
 }
@@ -58,7 +58,7 @@ impl StarRealmsShared {
 
     /// Check if any turns have updated since the last check
     /// This returns a HashMap of GameID and the username of the player whose turn it is
-    async fn check_turns(&mut self) -> HashMap<i64, String> {
+    async fn check_turns(&mut self) -> HashMap<i64, Game> {
         //TODO: Maybe return Game instead?
         let mut turns = HashMap::new();
         let activity = self.sr.activity().await.expect("Could not get activity");
@@ -66,19 +66,16 @@ impl StarRealmsShared {
         for game in activity.activegames {
             let turn = self.game_turns.get(&game.id);
 
-            let mut which_turn = game.opponentname.clone();
-            if game.actionneeded {
-                which_turn = self.sr.token.username.clone();
-            }
+            let which_turn = game.which_turn();
 
             if turn.is_none() {
-                turns.insert(game.id, which_turn);
                 info!("Found new game: {:?}", game);
+                turns.insert(game.id, game);
             } else {
                 let turn = turn.unwrap();
-                if turn != &which_turn {
-                    turns.insert(game.id, which_turn);
+                if turn.which_turn() != which_turn {
                     info!("Found new turn: {:?}", game);
+                    turns.insert(game.id, game);
                 } else {
                     info!("Game {} already on last found turn", game.id);
                 }
@@ -172,7 +169,7 @@ impl EventHandler for Handler {
                         if let Err(why) = ChannelId(473189734873825293)
                             .say(
                                 &ctx1.http,
-                                format!("Player's Turn: {} in game {}", turn.1, turn.0),
+                                format!("Player's Turn: {} ({}) in game {} vs {} ({})", turn.1.which_turn(), turn.1.clientdata.get_auth(&turn.1.which_turn()).unwrap(), turn.0, &turn.1.opponentname, turn.1.clientdata.get_auth(&turn.1.opponentname).unwrap()),
                             )
                             .await
                         {
