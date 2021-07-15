@@ -7,11 +7,11 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-star-realms-rs = { path = "../star-realms" }
+star-realms-rs = "0.1.5"
 serenity = { version = "0.10", default-features = false, features = ["client", "gateway", "rustls_backend", "model", "utils"] }
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
 log = "0.4"
-env_logger = "0.8"
+env_logger = "0.9"
 anyhow = "1"
 dotenv = "0.15.0"
 static_init = "1.0.1"
