@@ -11,7 +11,7 @@ use serenity::{
     prelude::*,
 };
 
-use log::{self, info};
+use log::{self, info, error};
 use star_realms_rs::{Challenge, Game, StarRealms};
 
 use anyhow::Result;
@@ -139,8 +139,17 @@ impl EventHandler for Handler {
                     )
                     .await
                 {
-                    println!("Error sending message: {:?}", why);
+                    error!("Error sending message: {:?}", why);
                 }
+            }
+        }
+        if msg.content.to_lowercase().starts_with("!version") {
+            if let Err(why) = msg
+                .channel_id
+                .say(&ctx.http, format!("Starbot {}", env!("CARGO_PKG_VERSION")))
+                .await
+            {
+                error!("Error sending message: {:?}", why);
             }
         }
     }
