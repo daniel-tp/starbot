@@ -23,6 +23,7 @@ struct StarRealmsShared {
     sr: StarRealms,
     game_turns: HashMap<i64, Game>,
     challenges: Vec<i64>,
+    finished: Vec<i64>,
     last_update: Instant,
 }
 
@@ -45,6 +46,7 @@ impl StarRealmsShared {
             .await?,
             game_turns: HashMap::new(),
             challenges: vec![],
+            finished: vec![],
             last_update: Instant::now(), //TODO: Maybe set to 0?
         };
 
@@ -107,6 +109,25 @@ impl StarRealmsShared {
         }
         challenges
     }
+
+    async fn check_finished(&mut self) -> Vec<Game> {
+        let mut finished = vec![];
+        let activity = self.sr.activity().await.expect("Could not get activity");
+
+        for game in activity.finishedgames {
+            if !self.finished.contains(&game.id) {
+                self.finished.push(game.id);
+                info!("Found new challenge: {:?}", game);
+                finished.push(game);
+            }
+        }
+
+        if !finished.is_empty() {
+            self.last_update = Instant::now();
+        }
+        finished
+    }
+
 }
 
 struct Handler {
@@ -191,8 +212,23 @@ impl EventHandler for Handler {
                             .say(
                                 &ctx1.http,
                                 format!(
-                                    "New challenge from: {} to {}",
+                                    "{} is challenging {} to a game of Star Realms! 🚀🚀🚀",
                                     chal.challengername, chal.opponentname
+                                ),
+                            )
+                            .await
+                        {
+                            println!("Error sending message: {:?}", why);
+                        }
+                    }
+
+                    for fin in sr.check_finished().await {
+                        if let Err(why) = ChannelId(473189734873825293)
+                            .say(
+                                &ctx1.http,
+                                format!(
+                                    "Game {} just finished, with {} at {} and {} at {}",
+                                    fin.id, fin.clientdata.p1_name, fin.clientdata.p1_auth, fin.clientdata.p2_name, fin.clientdata.p2_auth
                                 ),
                             )
                             .await

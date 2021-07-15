@@ -1208,7 +1208,7 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 [[package]]
 name = "star-realms-rs"
 version = "0.1.6"
-source = "git+https://github.com/daniel-tp/star-realms-rs#b890404e5fbfe9b50d3b686a6ef749025dd8641d"
+source = "git+https://github.com/daniel-tp/star-realms-rs#4101975dc900d4dcd6dbbcd8ad2f9866ce58ab27"
 dependencies = [
  "log",
  "reqwest",
@@ -1219,7 +1219,7 @@ dependencies = [
 
 [[package]]
 name = "starbot"
-version = "0.1.1"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "dotenv",
