@@ -118,47 +118,11 @@ struct Handler {
 
 #[async_trait]
 impl EventHandler for Handler {
-    // Set a handler for the `message` event - so that whenever a new message
-    // is received - the closure (or function) passed will be called.
-    //
-    // Event handlers are dispatched through a threadpool, and so multiple
-    // events can be dispatched simultaneously.
-    async fn message(&self, ctx: Context, msg: Message) {
-        if msg.content == "!turn" {
-            let sr_lock = {
-                let data_read = ctx.data.read().await;
 
-                // Since the CommandCounter Value is wrapped in an Arc, cloning will not duplicate the
-                // data, instead the reference is cloned.
-                // We wap every value on in an Arc, as to keep the data lock open for the least time possible,
-                // to again, avoid deadlocking it.
-                data_read
-                    .get::<StarRealmsSharedContainer>()
-                    .expect("Expected StarRealmsSharedContainer in TypeMap.")
-                    .clone()
-            };
-            let mut sr = sr_lock.write().await;
-            for turn in sr.check_turns().await {
-                if let Err(why) = msg
-                    .channel_id
-                    .say(
-                        &ctx.http,
-                        format!("Player's Turn: {} in game {}", turn.1, turn.0),
-                    )
-                    .await
-                {
-                    println!("Error sending message: {:?}", why);
-                }
-            }
-        }
+    async fn message(&self, ctx: Context, msg: Message) {
         if msg.content.starts_with("!chal") {
             let sr_lock = {
                 let data_read = ctx.data.read().await;
-
-                // Since the CommandCounter Value is wrapped in an Arc, cloning will not duplicate the
-                // data, instead the reference is cloned.
-                // We wap every value on in an Arc, as to keep the data lock open for the least time possible,
-                // to again, avoid deadlocking it.
                 data_read
                     .get::<StarRealmsSharedContainer>()
                     .expect("Expected StarRealmsSharedContainer in TypeMap.")
